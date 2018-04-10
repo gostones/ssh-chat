@@ -15,10 +15,10 @@ import (
 	"github.com/jessevdk/go-flags"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/shazow/ssh-chat"
-	"github.com/shazow/ssh-chat/chat"
-	"github.com/shazow/ssh-chat/chat/message"
-	"github.com/shazow/ssh-chat/sshd"
+	"github.com/gostones/ssh-chat"
+	"github.com/gostones/ssh-chat/chat"
+	"github.com/gostones/ssh-chat/chat/message"
+	"github.com/gostones/ssh-chat/sshd"
 )
 import _ "net/http/pprof"
 

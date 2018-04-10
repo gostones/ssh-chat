@@ -5,8 +5,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/shazow/ssh-chat/set"
-	"github.com/shazow/ssh-chat/sshd"
+	"github.com/gostones/ssh-chat/set"
+	"github.com/gostones/ssh-chat/sshd"
 	"golang.org/x/crypto/ssh"
 )
 

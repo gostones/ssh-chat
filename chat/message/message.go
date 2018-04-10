@@ -109,7 +109,7 @@ func (m PublicMsg) Render(t *Theme) string {
 		return m.String()
 	}
 
-	return fmt.Sprintf("%s: %s", t.ColorName(m.from), m.body)
+	return fmt.Sprintf(`{"from": "%s", "body": %s}`, m.from.Name(), m.body)
 }
 
 func (m PublicMsg) RenderFor(cfg UserConfig) string {
@@ -125,11 +125,11 @@ func (m PublicMsg) RenderFor(cfg UserConfig) string {
 	if cfg.Bell {
 		body += Bel
 	}
-	return fmt.Sprintf("%s: %s", cfg.Theme.ColorName(m.from), body)
+	return fmt.Sprintf(`{"from": "%s", "body": %s}`, m.from.Name(), body)
 }
 
 func (m PublicMsg) String() string {
-	return fmt.Sprintf("%s: %s", m.from.Name(), m.body)
+	return fmt.Sprintf(`{"from": "%s", "body": %s}`, m.from.Name(), m.body)
 }
 
 // EmoteMsg is a /me message sent to the room. It specifically does not
@@ -151,7 +151,7 @@ func NewEmoteMsg(body string, from *User) *EmoteMsg {
 }
 
 func (m EmoteMsg) Render(t *Theme) string {
-	return fmt.Sprintf("** %s %s", m.from.Name(), m.body)
+	return fmt.Sprintf(`{"from": %s: "msg": "%s"}`, m.from.Name(), m.body)
 }
 
 func (m EmoteMsg) String() string {
@@ -176,7 +176,7 @@ func (m PrivateMsg) To() *User {
 }
 
 func (m PrivateMsg) Render(t *Theme) string {
-	s := fmt.Sprintf("[PM from %s] %s", m.from.Name(), m.body)
+	s := fmt.Sprintf(`{"scope": "pm", "from": "%s", "body": %s}`, m.from.Name(), m.body)
 	if t == nil {
 		return s
 	}
@@ -212,7 +212,7 @@ func (m *SystemMsg) Render(t *Theme) string {
 }
 
 func (m *SystemMsg) String() string {
-	return fmt.Sprintf("-> %s", m.body)
+	return fmt.Sprintf(`// %s`, m.body)
 }
 
 func (m *SystemMsg) To() *User {
@@ -242,7 +242,7 @@ func (m AnnounceMsg) Render(t *Theme) string {
 }
 
 func (m AnnounceMsg) String() string {
-	return fmt.Sprintf(" * %s", m.body)
+	return fmt.Sprintf(`%s`, m.body)
 }
 
 type CommandMsg struct {

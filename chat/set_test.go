@@ -3,8 +3,8 @@ package chat
 import (
 	"testing"
 
-	"github.com/shazow/ssh-chat/chat/message"
-	"github.com/shazow/ssh-chat/set"
+	"github.com/gostones/ssh-chat/chat/message"
+	"github.com/gostones/ssh-chat/set"
 )
 
 func TestSet(t *testing.T) {

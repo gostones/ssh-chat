@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/shazow/rateio"
-	"github.com/shazow/ssh-chat/chat"
-	"github.com/shazow/ssh-chat/chat/message"
-	"github.com/shazow/ssh-chat/set"
-	"github.com/shazow/ssh-chat/sshd"
+	"github.com/gostones/ssh-chat/chat"
+	"github.com/gostones/ssh-chat/chat/message"
+	"github.com/gostones/ssh-chat/set"
+	"github.com/gostones/ssh-chat/sshd"
 )
 
 const maxInputLength int = 1024
@@ -21,6 +21,11 @@ const maxInputLength int = 1024
 func GetPrompt(user *message.User) string {
 	name := user.Name()
 	cfg := user.Config()
+
+	if !cfg.Prompt {
+		return ""
+	}
+
 	if cfg.Theme != nil {
 		name = cfg.Theme.ColorName(user)
 	}

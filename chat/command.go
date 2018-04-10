@@ -3,13 +3,12 @@ package chat
 // FIXME: Would be sweet if we could piggyback on a cli parser or something.
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/shazow/ssh-chat/chat/message"
-	"github.com/shazow/ssh-chat/set"
+	"github.com/gostones/ssh-chat/chat/message"
+	"github.com/gostones/ssh-chat/set"
 )
 
 // The error returned when an invalid command is issued.
@@ -136,38 +135,38 @@ func InitCommands(c *Commands) {
 			return nil
 		},
 	})
-	c.Alias("/exit", "/quit")
+	//c.Alias("/exit", "/quit")
 
-	c.Add(Command{
-		Prefix:     "/nick",
-		PrefixHelp: "NAME",
-		Help:       "Rename yourself.",
-		Handler: func(room *Room, msg message.CommandMsg) error {
-			args := msg.Args()
-			if len(args) != 1 {
-				return ErrMissingArg
-			}
-			u := msg.From()
-
-			member, ok := room.MemberByID(u.ID())
-			if !ok {
-				return errors.New("failed to find member")
-			}
-
-			oldID := member.ID()
-			newID := SanitizeName(args[0])
-			if newID == oldID {
-				return errors.New("new name is the same as the original")
-			}
-			member.SetID(newID)
-			err := room.Rename(oldID, member)
-			if err != nil {
-				member.SetID(oldID)
-				return err
-			}
-			return nil
-		},
-	})
+	//c.Add(Command{
+	//	Prefix:     "/nick",
+	//	PrefixHelp: "NAME",
+	//	Help:       "Rename yourself.",
+	//	Handler: func(room *Room, msg message.CommandMsg) error {
+	//		args := msg.Args()
+	//		if len(args) != 1 {
+	//			return ErrMissingArg
+	//		}
+	//		u := msg.From()
+	//
+	//		member, ok := room.MemberByID(u.ID())
+	//		if !ok {
+	//			return errors.New("failed to find member")
+	//		}
+	//
+	//		oldID := member.ID()
+	//		newID := SanitizeName(args[0])
+	//		if newID == oldID {
+	//			return errors.New("new name is the same as the original")
+	//		}
+	//		member.SetID(newID)
+	//		err := room.Rename(oldID, member)
+	//		if err != nil {
+	//			member.SetID(oldID)
+	//			return err
+	//		}
+	//		return nil
+	//	},
+	//})
 
 	c.Add(Command{
 		Prefix: "/names",
@@ -191,103 +190,103 @@ func InitCommands(c *Commands) {
 				colNames[i] = colorize(uname.Value().(*Member).User)
 			}
 
-			body := fmt.Sprintf("%d connected: %s", len(colNames), strings.Join(colNames, ", "))
+			body := fmt.Sprintf(`{"type": "names", "connected": %d, "member": "%s"}`, len(colNames), strings.Join(colNames, ", "))
 			room.Send(message.NewSystemMsg(body, msg.From()))
 			return nil
 		},
 	})
-	c.Alias("/names", "/list")
+	//c.Alias("/names", "/list")
 
-	c.Add(Command{
-		Prefix:     "/theme",
-		PrefixHelp: "[colors|...]",
-		Help:       "Set your color theme.",
-		Handler: func(room *Room, msg message.CommandMsg) error {
-			user := msg.From()
-			args := msg.Args()
-			cfg := user.Config()
-			if len(args) == 0 {
-				theme := "plain"
-				if cfg.Theme != nil {
-					theme = cfg.Theme.ID()
-				}
-				var output bytes.Buffer
-				fmt.Fprintf(&output, "Current theme: %s%s", theme, message.Newline)
-				fmt.Fprintf(&output, "   Themes available: ")
-				for i, t := range message.Themes {
-					fmt.Fprintf(&output, t.ID())
-					if i < len(message.Themes)-1 {
-						fmt.Fprintf(&output, ", ")
-					}
-				}
-				room.Send(message.NewSystemMsg(output.String(), user))
-				return nil
-			}
+	//c.Add(Command{
+	//	Prefix:     "/theme",
+	//	PrefixHelp: "[colors|...]",
+	//	Help:       "Set your color theme.",
+	//	Handler: func(room *Room, msg message.CommandMsg) error {
+	//		user := msg.From()
+	//		args := msg.Args()
+	//		cfg := user.Config()
+	//		if len(args) == 0 {
+	//			theme := "plain"
+	//			if cfg.Theme != nil {
+	//				theme = cfg.Theme.ID()
+	//			}
+	//			var output bytes.Buffer
+	//			fmt.Fprintf(&output, "Current theme: %s%s", theme, message.Newline)
+	//			fmt.Fprintf(&output, "   Themes available: ")
+	//			for i, t := range message.Themes {
+	//				fmt.Fprintf(&output, t.ID())
+	//				if i < len(message.Themes)-1 {
+	//					fmt.Fprintf(&output, ", ")
+	//				}
+	//			}
+	//			room.Send(message.NewSystemMsg(output.String(), user))
+	//			return nil
+	//		}
+	//
+	//		id := args[0]
+	//		for _, t := range message.Themes {
+	//			if t.ID() == id {
+	//				cfg.Theme = &t
+	//				user.SetConfig(cfg)
+	//				body := fmt.Sprintf("Set theme: %s", id)
+	//				room.Send(message.NewSystemMsg(body, user))
+	//				return nil
+	//			}
+	//		}
+	//		return errors.New("theme not found")
+	//	},
+	//})
 
-			id := args[0]
-			for _, t := range message.Themes {
-				if t.ID() == id {
-					cfg.Theme = &t
-					user.SetConfig(cfg)
-					body := fmt.Sprintf("Set theme: %s", id)
-					room.Send(message.NewSystemMsg(body, user))
-					return nil
-				}
-			}
-			return errors.New("theme not found")
-		},
-	})
-
-	c.Add(Command{
-		Prefix: "/quiet",
-		Help:   "Silence room announcements.",
-		Handler: func(room *Room, msg message.CommandMsg) error {
-			u := msg.From()
-			cfg := u.Config()
-			cfg.Quiet = !cfg.Quiet
-			u.SetConfig(cfg)
-
-			var body string
-			if cfg.Quiet {
-				body = "Quiet mode is toggled ON"
-			} else {
-				body = "Quiet mode is toggled OFF"
-			}
-			room.Send(message.NewSystemMsg(body, u))
-			return nil
-		},
-	})
-
-	c.Add(Command{
-		Prefix:     "/slap",
-		PrefixHelp: "NAME",
-		Handler: func(room *Room, msg message.CommandMsg) error {
-			var me string
-			args := msg.Args()
-			if len(args) == 0 {
-				me = "slaps themselves around a bit with a large trout."
-			} else {
-				me = fmt.Sprintf("slaps %s around a bit with a large trout.", strings.Join(args, " "))
-			}
-
-			room.Send(message.NewEmoteMsg(me, msg.From()))
-			return nil
-		},
-	})
-
-	c.Add(Command{
-		Prefix: "/shrug",
-		Handler: func(room *Room, msg message.CommandMsg) error {
-			var me string
-			args := msg.Args()
-			if len(args) == 0 {
-				me = `¯\_(ツ)_/¯`
-			}
-
-			room.Send(message.NewEmoteMsg(me, msg.From()))
-			return nil
-		},
-	})
+	//c.Add(Command{
+	//	Prefix: "/quiet",
+	//	Help:   "Silence room announcements.",
+	//	Handler: func(room *Room, msg message.CommandMsg) error {
+	//		u := msg.From()
+	//		cfg := u.Config()
+	//		cfg.Quiet = !cfg.Quiet
+	//		u.SetConfig(cfg)
+	//
+	//		var body string
+	//		if cfg.Quiet {
+	//			body = "Quiet mode is toggled ON"
+	//		} else {
+	//			body = "Quiet mode is toggled OFF"
+	//		}
+	//		room.Send(message.NewSystemMsg(body, u))
+	//		return nil
+	//	},
+	//})
+	//
+	//c.Add(Command{
+	//	Prefix:     "/slap",
+	//	PrefixHelp: "NAME",
+	//	Handler: func(room *Room, msg message.CommandMsg) error {
+	//		var me string
+	//		args := msg.Args()
+	//		if len(args) == 0 {
+	//			me = "slaps themselves around a bit with a large trout."
+	//		} else {
+	//			me = fmt.Sprintf("slaps %s around a bit with a large trout.", strings.Join(args, " "))
+	//		}
+	//
+	//		room.Send(message.NewEmoteMsg(me, msg.From()))
+	//		return nil
+	//	},
+	//})
+	//
+	//c.Add(Command{
+	//	Prefix: "/shrug",
+	//	Handler: func(room *Room, msg message.CommandMsg) error {
+	//		var me string
+	//		args := msg.Args()
+	//		if len(args) == 0 {
+	//			me = `¯\_(ツ)_/¯`
+	//		}
+	//
+	//		room.Send(message.NewEmoteMsg(me, msg.From()))
+	//		return nil
+	//	},
+	//})
 
 	c.Add(Command{
 		Prefix: "/timestamp",

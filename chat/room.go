@@ -6,8 +6,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/shazow/ssh-chat/chat/message"
-	"github.com/shazow/ssh-chat/set"
+	"github.com/gostones/ssh-chat/chat/message"
+	"github.com/gostones/ssh-chat/set"
 )
 
 const historyLen = 20
@@ -153,7 +153,7 @@ func (r *Room) Join(u *message.User) (*Member, error) {
 		return nil, err
 	}
 	r.History(u)
-	s := fmt.Sprintf("%s joined. (Connected: %d)", u.Name(), r.Members.Len())
+	s := fmt.Sprintf(`{"type": "presence", "who": "%s", "status": "joined", "connected": %d}`, u.Name(), r.Members.Len())
 	r.Send(message.NewAnnounceMsg(s))
 	return member, nil
 }
@@ -165,7 +165,7 @@ func (r *Room) Leave(u message.Identifier) error {
 		return err
 	}
 	r.Ops.Remove(u.ID())
-	s := fmt.Sprintf("%s left.", u.Name())
+	s := fmt.Sprintf(`{"type": "presence", "who": "%s", "status": "left"}`, u.Name())
 	r.Send(message.NewAnnounceMsg(s))
 	return nil
 }
@@ -180,7 +180,7 @@ func (r *Room) Rename(oldID string, u message.Identifier) error {
 		return err
 	}
 
-	s := fmt.Sprintf("%s is now known as %s.", oldID, u.ID())
+	s := fmt.Sprintf(`{"type": "nick", "who": "%s", "alias": "%s"`, oldID, u.ID())
 	r.Send(message.NewAnnounceMsg(s))
 	return nil
 }

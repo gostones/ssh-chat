@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shazow/ssh-chat/set"
+	"github.com/gostones/ssh-chat/set"
 )
 
 const messageBuffer = 5
@@ -220,6 +220,7 @@ type UserConfig struct {
 	Quiet     bool
 	Timestamp bool
 	Theme     *Theme
+	Prompt    bool
 }
 
 // Default user configuration to use
@@ -227,9 +228,10 @@ var DefaultUserConfig UserConfig
 
 func init() {
 	DefaultUserConfig = UserConfig{
-		Bell:      true,
+		Bell:      false,
 		Quiet:     false,
 		Timestamp: false,
+		Prompt:    false,
 	}
 
 	// TODO: Seed random?
