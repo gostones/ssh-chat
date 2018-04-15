@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/gostones/ssh-chat/chat/message"
-	"github.com/gostones/ssh-chat/set"
 )
 
 // The error returned when an invalid command is issued.
@@ -128,48 +127,48 @@ func InitCommands(c *Commands) {
 	})
 
 	c.Add(Command{
-		Prefix: "/exit",
+		Prefix: "/quit",
 		Help:   "Exit the chat.",
 		Handler: func(room *Room, msg message.CommandMsg) error {
 			msg.From().Close()
 			return nil
 		},
 	})
-	//c.Alias("/exit", "/quit")
-
-	//c.Add(Command{
-	//	Prefix:     "/nick",
-	//	PrefixHelp: "NAME",
-	//	Help:       "Rename yourself.",
-	//	Handler: func(room *Room, msg message.CommandMsg) error {
-	//		args := msg.Args()
-	//		if len(args) != 1 {
-	//			return ErrMissingArg
-	//		}
-	//		u := msg.From()
-	//
-	//		member, ok := room.MemberByID(u.ID())
-	//		if !ok {
-	//			return errors.New("failed to find member")
-	//		}
-	//
-	//		oldID := member.ID()
-	//		newID := SanitizeName(args[0])
-	//		if newID == oldID {
-	//			return errors.New("new name is the same as the original")
-	//		}
-	//		member.SetID(newID)
-	//		err := room.Rename(oldID, member)
-	//		if err != nil {
-	//			member.SetID(oldID)
-	//			return err
-	//		}
-	//		return nil
-	//	},
-	//})
+	//c.Alias("/quit", "/exit")
 
 	c.Add(Command{
-		Prefix: "/names",
+		Prefix:     "/nick",
+		PrefixHelp: "NAME",
+		Help:       "Rename yourself.",
+		Handler: func(room *Room, msg message.CommandMsg) error {
+			args := msg.Args()
+			if len(args) != 1 {
+				return ErrMissingArg
+			}
+			u := msg.From()
+
+			member, ok := room.MemberByID(u.ID())
+			if !ok {
+				return errors.New("failed to find member")
+			}
+
+			oldID := member.ID()
+			newID := SanitizeName(args[0])
+			if newID == oldID {
+				return errors.New("new name is the same as the original")
+			}
+			member.SetID(newID)
+			err := room.Rename(oldID, member)
+			if err != nil {
+				member.SetID(oldID)
+				return err
+			}
+			return nil
+		},
+	})
+
+	c.Add(Command{
+		Prefix: "/who",
 		Help:   "List users who are connected.",
 		Handler: func(room *Room, msg message.CommandMsg) error {
 			theme := msg.From().Config().Theme
@@ -190,7 +189,7 @@ func InitCommands(c *Commands) {
 				colNames[i] = colorize(uname.Value().(*Member).User)
 			}
 
-			body := fmt.Sprintf(`{"type": "names", "connected": %d, "member": "%s"}`, len(colNames), strings.Join(colNames, ", "))
+			body := fmt.Sprintf(`{"type": "who", "connected": %d, "member": "%s"}`, len(colNames), strings.Join(colNames, ", "))
 			room.Send(message.NewSystemMsg(body, msg.From()))
 			return nil
 		},
@@ -288,86 +287,86 @@ func InitCommands(c *Commands) {
 	//	},
 	//})
 
-	c.Add(Command{
-		Prefix: "/timestamp",
-		Help:   "Timestamps after 30min of inactivity.",
-		Handler: func(room *Room, msg message.CommandMsg) error {
-			u := msg.From()
-			cfg := u.Config()
-			cfg.Timestamp = !cfg.Timestamp
-			u.SetConfig(cfg)
+	//c.Add(Command{
+	//	Prefix: "/timestamp",
+	//	Help:   "Timestamps after 30min of inactivity.",
+	//	Handler: func(room *Room, msg message.CommandMsg) error {
+	//		u := msg.From()
+	//		cfg := u.Config()
+	//		cfg.Timestamp = !cfg.Timestamp
+	//		u.SetConfig(cfg)
+	//
+	//		var body string
+	//		if cfg.Timestamp {
+	//			body = "Timestamp is toggled ON"
+	//		} else {
+	//			body = "Timestamp is toggled OFF"
+	//		}
+	//		room.Send(message.NewSystemMsg(body, u))
+	//		return nil
+	//	},
+	//})
 
-			var body string
-			if cfg.Timestamp {
-				body = "Timestamp is toggled ON"
-			} else {
-				body = "Timestamp is toggled OFF"
-			}
-			room.Send(message.NewSystemMsg(body, u))
-			return nil
-		},
-	})
-
-	c.Add(Command{
-		Prefix:     "/ignore",
-		PrefixHelp: "[USER]",
-		Help:       "Hide messages from USER, /unignore USER to stop hiding.",
-		Handler: func(room *Room, msg message.CommandMsg) error {
-			id := strings.TrimSpace(strings.TrimLeft(msg.Body(), "/ignore"))
-			if id == "" {
-				// Print ignored names, if any.
-				var names []string
-				msg.From().Ignored.Each(func(_ string, item set.Item) error {
-					names = append(names, item.Key())
-					return nil
-				})
-
-				var systemMsg string
-				if len(names) == 0 {
-					systemMsg = "0 users ignored."
-				} else {
-					systemMsg = fmt.Sprintf("%d ignored: %s", len(names), strings.Join(names, ", "))
-				}
-
-				room.Send(message.NewSystemMsg(systemMsg, msg.From()))
-				return nil
-			}
-
-			if id == msg.From().ID() {
-				return errors.New("cannot ignore self")
-			}
-			target, ok := room.MemberByID(id)
-			if !ok {
-				return fmt.Errorf("user not found: %s", id)
-			}
-
-			err := msg.From().Ignored.Add(set.Itemize(id, target))
-			if err == set.ErrCollision {
-				return fmt.Errorf("user already ignored: %s", id)
-			} else if err != nil {
-				return err
-			}
-
-			room.Send(message.NewSystemMsg(fmt.Sprintf("Ignoring: %s", target.Name()), msg.From()))
-			return nil
-		},
-	})
-
-	c.Add(Command{
-		Prefix:     "/unignore",
-		PrefixHelp: "USER",
-		Handler: func(room *Room, msg message.CommandMsg) error {
-			id := strings.TrimSpace(strings.TrimLeft(msg.Body(), "/unignore"))
-			if id == "" {
-				return errors.New("must specify user")
-			}
-
-			if err := msg.From().Ignored.Remove(id); err != nil {
-				return err
-			}
-
-			room.Send(message.NewSystemMsg(fmt.Sprintf("No longer ignoring: %s", id), msg.From()))
-			return nil
-		},
-	})
+	//c.Add(Command{
+	//	Prefix:     "/ignore",
+	//	PrefixHelp: "[USER]",
+	//	Help:       "Hide messages from USER, /unignore USER to stop hiding.",
+	//	Handler: func(room *Room, msg message.CommandMsg) error {
+	//		id := strings.TrimSpace(strings.TrimLeft(msg.Body(), "/ignore"))
+	//		if id == "" {
+	//			// Print ignored names, if any.
+	//			var names []string
+	//			msg.From().Ignored.Each(func(_ string, item set.Item) error {
+	//				names = append(names, item.Key())
+	//				return nil
+	//			})
+	//
+	//			var systemMsg string
+	//			if len(names) == 0 {
+	//				systemMsg = "0 users ignored."
+	//			} else {
+	//				systemMsg = fmt.Sprintf("%d ignored: %s", len(names), strings.Join(names, ", "))
+	//			}
+	//
+	//			room.Send(message.NewSystemMsg(systemMsg, msg.From()))
+	//			return nil
+	//		}
+	//
+	//		if id == msg.From().ID() {
+	//			return errors.New("cannot ignore self")
+	//		}
+	//		target, ok := room.MemberByID(id)
+	//		if !ok {
+	//			return fmt.Errorf("user not found: %s", id)
+	//		}
+	//
+	//		err := msg.From().Ignored.Add(set.Itemize(id, target))
+	//		if err == set.ErrCollision {
+	//			return fmt.Errorf("user already ignored: %s", id)
+	//		} else if err != nil {
+	//			return err
+	//		}
+	//
+	//		room.Send(message.NewSystemMsg(fmt.Sprintf("Ignoring: %s", target.Name()), msg.From()))
+	//		return nil
+	//	},
+	//})
+	//
+	//c.Add(Command{
+	//	Prefix:     "/unignore",
+	//	PrefixHelp: "USER",
+	//	Handler: func(room *Room, msg message.CommandMsg) error {
+	//		id := strings.TrimSpace(strings.TrimLeft(msg.Body(), "/unignore"))
+	//		if id == "" {
+	//			return errors.New("must specify user")
+	//		}
+	//
+	//		if err := msg.From().Ignored.Remove(id); err != nil {
+	//			return err
+	//		}
+	//
+	//		room.Send(message.NewSystemMsg(fmt.Sprintf("No longer ignoring: %s", id), msg.From()))
+	//		return nil
+	//	},
+	//})
 }

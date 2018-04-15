@@ -116,12 +116,16 @@ func (h *Host) Connect(term *sshd.Terminal) {
 		user.Send(message.NewAnnounceMsg(motd))
 	}
 
+	//member, err := h.Join(user)
+	//if err != nil {
+	//	// Try again...
+	//	id.SetName(fmt.Sprintf("g%d", count))
+	//	member, err = h.Join(user)
+	//}
+
+	id.SetName(fmt.Sprintf("g%d", count))
 	member, err := h.Join(user)
-	if err != nil {
-		// Try again...
-		id.SetName(fmt.Sprintf("Guest%d", count))
-		member, err = h.Join(user)
-	}
+
 	if err != nil {
 		logger.Errorf("[%s] Failed to join: %s", term.Conn.RemoteAddr(), err)
 		return
@@ -169,16 +173,16 @@ func (h *Host) Connect(term *sshd.Terminal) {
 		// FIXME: Any reason to use h.room.Send(m) instead?
 		h.HandleMsg(m)
 
-		cmd := m.Command()
-		if cmd == "/nick" || cmd == "/theme" {
-			// Hijack /nick command to update terminal synchronously. Wouldn't
-			// work if we use h.room.Send(m) above.
-			//
-			// FIXME: This is hacky, how do we improve the API to allow for
-			// this? Chat module shouldn't know about terminals.
-			term.SetPrompt(GetPrompt(user))
-			user.SetHighlight(user.Name())
-		}
+		//cmd := m.Command()
+		//if cmd == "/nick" || cmd == "/theme" {
+		//	// Hijack /nick command to update terminal synchronously. Wouldn't
+		//	// work if we use h.room.Send(m) above.
+		//	//
+		//	// FIXME: This is hacky, how do we improve the API to allow for
+		//	// this? Chat module shouldn't know about terminals.
+		//	term.SetPrompt(GetPrompt(user))
+		//	user.SetHighlight(user.Name())
+		//}
 	}
 
 	err = h.Leave(user)
@@ -312,37 +316,37 @@ func (h *Host) InitCommands(c *chat.Commands) {
 		},
 	})
 
-	c.Add(chat.Command{
-		Prefix:     "/reply",
-		PrefixHelp: "MESSAGE",
-		Help:       "Reply with MESSAGE to the previous private message.",
-		Handler: func(room *chat.Room, msg message.CommandMsg) error {
-			args := msg.Args()
-			switch len(args) {
-			case 0:
-				return errors.New("must specify message")
-			}
-
-			target := msg.From().ReplyTo()
-			if target == nil {
-				return errors.New("no message to reply to")
-			}
-
-			name := target.Name()
-			_, found := h.GetUser(name)
-			if !found {
-				return errors.New("user not found")
-			}
-
-			m := message.NewPrivateMsg(strings.Join(args, " "), msg.From(), target)
-			room.Send(&m)
-
-			txt := fmt.Sprintf("[Sent PM to %s]", name)
-			ms := message.NewSystemMsg(txt, msg.From())
-			room.Send(ms)
-			return nil
-		},
-	})
+	//c.Add(chat.Command{
+	//	Prefix:     "/reply",
+	//	PrefixHelp: "MESSAGE",
+	//	Help:       "Reply with MESSAGE to the previous private message.",
+	//	Handler: func(room *chat.Room, msg message.CommandMsg) error {
+	//		args := msg.Args()
+	//		switch len(args) {
+	//		case 0:
+	//			return errors.New("must specify message")
+	//		}
+	//
+	//		target := msg.From().ReplyTo()
+	//		if target == nil {
+	//			return errors.New("no message to reply to")
+	//		}
+	//
+	//		name := target.Name()
+	//		_, found := h.GetUser(name)
+	//		if !found {
+	//			return errors.New("user not found")
+	//		}
+	//
+	//		m := message.NewPrivateMsg(strings.Join(args, " "), msg.From(), target)
+	//		room.Send(&m)
+	//
+	//		txt := fmt.Sprintf("[Sent PM to %s]", name)
+	//		ms := message.NewSystemMsg(txt, msg.From())
+	//		room.Send(ms)
+	//		return nil
+	//	},
+	//})
 
 	c.Add(chat.Command{
 		Prefix:     "/whois",
@@ -459,35 +463,35 @@ func (h *Host) InitCommands(c *chat.Commands) {
 		},
 	})
 
-	c.Add(chat.Command{
-		Op:         true,
-		Prefix:     "/motd",
-		PrefixHelp: "[MESSAGE]",
-		Help:       "Set a new MESSAGE of the day, print the current motd without parameters.",
-		Handler: func(room *chat.Room, msg message.CommandMsg) error {
-			args := msg.Args()
-			user := msg.From()
-
-			h.mu.Lock()
-			motd := h.motd
-			h.mu.Unlock()
-
-			if len(args) == 0 {
-				room.Send(message.NewSystemMsg(motd, user))
-				return nil
-			}
-			if !room.IsOp(user) {
-				return errors.New("must be OP to modify the MOTD")
-			}
-
-			motd = strings.Join(args, " ")
-			h.SetMotd(motd)
-			fromMsg := fmt.Sprintf("New message of the day set by %s:", msg.From().Name())
-			room.Send(message.NewAnnounceMsg(fromMsg + message.Newline + "-> " + motd))
-
-			return nil
-		},
-	})
+	//c.Add(chat.Command{
+	//	Op:         true,
+	//	Prefix:     "/motd",
+	//	PrefixHelp: "[MESSAGE]",
+	//	Help:       "Set a new MESSAGE of the day, print the current motd without parameters.",
+	//	Handler: func(room *chat.Room, msg message.CommandMsg) error {
+	//		args := msg.Args()
+	//		user := msg.From()
+	//
+	//		h.mu.Lock()
+	//		motd := h.motd
+	//		h.mu.Unlock()
+	//
+	//		if len(args) == 0 {
+	//			room.Send(message.NewSystemMsg(motd, user))
+	//			return nil
+	//		}
+	//		if !room.IsOp(user) {
+	//			return errors.New("must be OP to modify the MOTD")
+	//		}
+	//
+	//		motd = strings.Join(args, " ")
+	//		h.SetMotd(motd)
+	//		fromMsg := fmt.Sprintf("New message of the day set by %s:", msg.From().Name())
+	//		room.Send(message.NewAnnounceMsg(fromMsg + message.Newline + "-> " + motd))
+	//
+	//		return nil
+	//	},
+	//})
 
 	c.Add(chat.Command{
 		Op:         true,

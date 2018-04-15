@@ -105,31 +105,32 @@ func (m PublicMsg) ParseCommand() (*CommandMsg, bool) {
 }
 
 func (m PublicMsg) Render(t *Theme) string {
-	if t == nil {
-		return m.String()
-	}
+	//if t == nil {
+	//	return m.String()
+	//}
 
-	return fmt.Sprintf(`{"from": "%s", "body": %s}`, m.from.Name(), m.body)
+	return m.String()
 }
 
 func (m PublicMsg) RenderFor(cfg UserConfig) string {
-	if cfg.Highlight == nil || cfg.Theme == nil {
-		return m.Render(cfg.Theme)
-	}
-
-	if !cfg.Highlight.MatchString(m.body) {
-		return m.Render(cfg.Theme)
-	}
-
-	body := cfg.Highlight.ReplaceAllString(m.body, cfg.Theme.Highlight("${1}"))
-	if cfg.Bell {
-		body += Bel
-	}
-	return fmt.Sprintf(`{"from": "%s", "body": %s}`, m.from.Name(), body)
+	//if cfg.Highlight == nil || cfg.Theme == nil {
+	//	return m.Render(cfg.Theme)
+	//}
+	//
+	//if !cfg.Highlight.MatchString(m.body) {
+	//	return m.Render(cfg.Theme)
+	//}
+	//
+	//body := cfg.Highlight.ReplaceAllString(m.body, cfg.Theme.Highlight("${1}"))
+	//if cfg.Bell {
+	//	body += Bel
+	//}
+	//return fmt.Sprintf(`{"from": "%s", "body": %s}`, m.from.Name(), body)
+	return m.String()
 }
 
 func (m PublicMsg) String() string {
-	return fmt.Sprintf(`{"from": "%s", "body": %s}`, m.from.Name(), m.body)
+	return fmt.Sprintf(`{"type": "msg", "from": "%s", "content": %s}`, m.from.Name(), m.body)
 }
 
 // EmoteMsg is a /me message sent to the room. It specifically does not
@@ -151,11 +152,11 @@ func NewEmoteMsg(body string, from *User) *EmoteMsg {
 }
 
 func (m EmoteMsg) Render(t *Theme) string {
-	return fmt.Sprintf(`{"from": %s: "msg": "%s"}`, m.from.Name(), m.body)
+	return m.String()
 }
 
 func (m EmoteMsg) String() string {
-	return m.Render(nil)
+	return fmt.Sprintf(`{"type": "me", "from": "%s", "msg": "%s"}`, m.from.Name(), m.body)
 }
 
 // PrivateMsg is a message sent to another user, not shown to anyone else.
@@ -176,15 +177,16 @@ func (m PrivateMsg) To() *User {
 }
 
 func (m PrivateMsg) Render(t *Theme) string {
-	s := fmt.Sprintf(`{"scope": "pm", "from": "%s", "body": %s}`, m.from.Name(), m.body)
-	if t == nil {
-		return s
-	}
-	return t.ColorPM(s)
+	//s := fmt.Sprintf(`{"type": "msg", "to": "%s", "from": "%s", "body": %s}`, m.to.Name(), m.from.Name(), m.body)
+	//if t == nil {
+	//	return s
+	//}
+	//return t.ColorPM(s)
+	return m.String()
 }
 
 func (m PrivateMsg) String() string {
-	return m.Render(nil)
+	return fmt.Sprintf(`{"type": "pm", "to": "%s", "from": "%s", "msg": "%s"}`, m.to.Name(), m.from.Name(), m.body)
 }
 
 // SystemMsg is a response sent from the server directly to a user, not shown
@@ -205,14 +207,15 @@ func NewSystemMsg(body string, to *User) *SystemMsg {
 }
 
 func (m *SystemMsg) Render(t *Theme) string {
-	if t == nil {
-		return m.String()
-	}
-	return t.ColorSys(m.String())
+	//if t == nil {
+	//	return m.String()
+	//}
+	//return t.ColorSys(m.String())
+	return m.String()
 }
 
 func (m *SystemMsg) String() string {
-	return fmt.Sprintf(`// %s`, m.body)
+	return fmt.Sprintf(`{"type": "system", "content": %s}`, m.body)
 }
 
 func (m *SystemMsg) To() *User {
@@ -235,14 +238,15 @@ func NewAnnounceMsg(body string) *AnnounceMsg {
 }
 
 func (m AnnounceMsg) Render(t *Theme) string {
-	if t == nil {
-		return m.String()
-	}
-	return t.ColorSys(m.String())
+	//if t == nil {
+	//	return m.String()
+	//}
+	//return t.ColorSys(m.String())
+	return m.String()
 }
 
 func (m AnnounceMsg) String() string {
-	return fmt.Sprintf(`%s`, m.body)
+	return fmt.Sprintf(`{"type": "announce", "content": %s}`, m.body)
 }
 
 type CommandMsg struct {
