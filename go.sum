@@ -6,6 +6,8 @@ github.com/jessevdk/go-flags v1.3.0 h1:QmKsgik/Z5fJ11ZtlcA8F+XW9dNybBNFQ1rngF3Mm
 github.com/jessevdk/go-flags v1.3.0/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/shazow/rateio v0.0.0-20150116013248-e8e00881e5c1 h1:Lx3BlDGFElJt4u/zKc9A3BuGYbQAGlEFyPuUA3jeMD0=
 github.com/shazow/rateio v0.0.0-20150116013248-e8e00881e5c1/go.mod h1:vt2jWY/3Qw1bIzle5thrJWucsLuuX9iUNnp20CqCciI=
+golang.org/x/crypto v0.0.0-20170825220121-81e90905daef h1:R8ubLIilYRXIXpgjOg2l/ECVs3HzVKIjJEhxSsQ91u4=
+golang.org/x/crypto v0.0.0-20170825220121-81e90905daef/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20180119074636-ee41a25c63fb h1:kKl6FEVxIb8jK+8DM5N225ACdo3ftHG5AGmay9F3Yc8=
 golang.org/x/crypto v0.0.0-20180119074636-ee41a25c63fb/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/sys v0.0.0-20180117170059-2c42eef0765b h1:mxo/dXmtEd5rXc/ZzMKg0qDhMT+51+LvV65S9dP6nh4=
