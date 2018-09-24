@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shazow/rateio"
 	"github.com/gostones/ssh-chat/chat"
 	"github.com/gostones/ssh-chat/chat/message"
 	"github.com/gostones/ssh-chat/set"
 	"github.com/gostones/ssh-chat/sshd"
+	"github.com/shazow/rateio"
 )
 
 const maxInputLength int = 1024
@@ -395,73 +395,73 @@ func (h *Host) InitCommands(c *chat.Commands) {
 		},
 	})
 
-	// Op commands
-	c.Add(chat.Command{
-		Op:         true,
-		Prefix:     "/kick",
-		PrefixHelp: "USER",
-		Help:       "Kick USER from the server.",
-		Handler: func(room *chat.Room, msg message.CommandMsg) error {
-			if !room.IsOp(msg.From()) {
-				return errors.New("must be op")
-			}
+	// // Op commands
+	// c.Add(chat.Command{
+	// 	Op:         true,
+	// 	Prefix:     "/kick",
+	// 	PrefixHelp: "USER",
+	// 	Help:       "Kick USER from the server.",
+	// 	Handler: func(room *chat.Room, msg message.CommandMsg) error {
+	// 		if !room.IsOp(msg.From()) {
+	// 			return errors.New("must be op")
+	// 		}
 
-			args := msg.Args()
-			if len(args) == 0 {
-				return errors.New("must specify user")
-			}
+	// 		args := msg.Args()
+	// 		if len(args) == 0 {
+	// 			return errors.New("must specify user")
+	// 		}
 
-			target, ok := h.GetUser(args[0])
-			if !ok {
-				return errors.New("user not found")
-			}
+	// 		target, ok := h.GetUser(args[0])
+	// 		if !ok {
+	// 			return errors.New("user not found")
+	// 		}
 
-			body := fmt.Sprintf("%s was kicked by %s.", target.Name(), msg.From().Name())
-			room.Send(message.NewAnnounceMsg(body))
-			target.Close()
-			return nil
-		},
-	})
+	// 		body := fmt.Sprintf("%s was kicked by %s.", target.Name(), msg.From().Name())
+	// 		room.Send(message.NewAnnounceMsg(body))
+	// 		target.Close()
+	// 		return nil
+	// 	},
+	// })
 
-	c.Add(chat.Command{
-		Op:         true,
-		Prefix:     "/ban",
-		PrefixHelp: "USER [DURATION]",
-		Help:       "Ban USER from the server.",
-		Handler: func(room *chat.Room, msg message.CommandMsg) error {
-			// TODO: Would be nice to specify what to ban. Key? Ip? etc.
-			if !room.IsOp(msg.From()) {
-				return errors.New("must be op")
-			}
+	// c.Add(chat.Command{
+	// 	Op:         true,
+	// 	Prefix:     "/ban",
+	// 	PrefixHelp: "USER [DURATION]",
+	// 	Help:       "Ban USER from the server.",
+	// 	Handler: func(room *chat.Room, msg message.CommandMsg) error {
+	// 		// TODO: Would be nice to specify what to ban. Key? Ip? etc.
+	// 		if !room.IsOp(msg.From()) {
+	// 			return errors.New("must be op")
+	// 		}
 
-			args := msg.Args()
-			if len(args) == 0 {
-				return errors.New("must specify user")
-			}
+	// 		args := msg.Args()
+	// 		if len(args) == 0 {
+	// 			return errors.New("must specify user")
+	// 		}
 
-			target, ok := h.GetUser(args[0])
-			if !ok {
-				return errors.New("user not found")
-			}
+	// 		target, ok := h.GetUser(args[0])
+	// 		if !ok {
+	// 			return errors.New("user not found")
+	// 		}
 
-			var until time.Duration = 0
-			if len(args) > 1 {
-				until, _ = time.ParseDuration(args[1])
-			}
+	// 		var until time.Duration = 0
+	// 		if len(args) > 1 {
+	// 			until, _ = time.ParseDuration(args[1])
+	// 		}
 
-			id := target.Identifier.(*Identity)
-			h.auth.Ban(id.PublicKey(), until)
-			h.auth.BanAddr(id.RemoteAddr(), until)
+	// 		id := target.Identifier.(*Identity)
+	// 		h.auth.Ban(id.PublicKey(), until)
+	// 		h.auth.BanAddr(id.RemoteAddr(), until)
 
-			body := fmt.Sprintf("%s was banned by %s.", target.Name(), msg.From().Name())
-			room.Send(message.NewAnnounceMsg(body))
-			target.Close()
+	// 		body := fmt.Sprintf("%s was banned by %s.", target.Name(), msg.From().Name())
+	// 		room.Send(message.NewAnnounceMsg(body))
+	// 		target.Close()
 
-			logger.Debugf("Banned: \n-> %s", id.Whois())
+	// 		logger.Debugf("Banned: \n-> %s", id.Whois())
 
-			return nil
-		},
-	})
+	// 		return nil
+	// 	},
+	// })
 
 	//c.Add(chat.Command{
 	//	Op:         true,

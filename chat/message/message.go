@@ -156,7 +156,7 @@ func (m EmoteMsg) Render(t *Theme) string {
 }
 
 func (m EmoteMsg) String() string {
-	return fmt.Sprintf(`{"type": "me", "from": "%s", "msg": "%s"}`, m.from.Name(), m.body)
+	return fmt.Sprintf(`{"type": "me", "from": "%s", "msg": %s}`, m.from.Name(), m.body)
 }
 
 // PrivateMsg is a message sent to another user, not shown to anyone else.
@@ -186,7 +186,7 @@ func (m PrivateMsg) Render(t *Theme) string {
 }
 
 func (m PrivateMsg) String() string {
-	return fmt.Sprintf(`{"type": "pm", "to": "%s", "from": "%s", "msg": "%s"}`, m.to.Name(), m.from.Name(), m.body)
+	return fmt.Sprintf(`{"type": "pm", "to": "%s", "from": "%s", "msg": %s}`, m.to.Name(), m.from.Name(), m.body)
 }
 
 // SystemMsg is a response sent from the server directly to a user, not shown
