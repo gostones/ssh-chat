@@ -130,7 +130,7 @@ func (m PublicMsg) RenderFor(cfg UserConfig) string {
 }
 
 func (m PublicMsg) String() string {
-	return fmt.Sprintf(`{"type": "msg", "from": "%s", "content": %s}`, m.from.Name(), m.body)
+	return fmt.Sprintf(`{"type": "msg", "from": "%s", "msg": %s}`, m.from.Name(), m.body)
 }
 
 // EmoteMsg is a /me message sent to the room. It specifically does not
