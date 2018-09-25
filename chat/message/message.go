@@ -215,7 +215,7 @@ func (m *SystemMsg) Render(t *Theme) string {
 }
 
 func (m *SystemMsg) String() string {
-	return fmt.Sprintf(`{"type": "system", "content": %s}`, m.body)
+	return fmt.Sprintf(`{"type": "system", "msg": %s}`, m.body)
 }
 
 func (m *SystemMsg) To() *User {
@@ -246,7 +246,26 @@ func (m AnnounceMsg) Render(t *Theme) string {
 }
 
 func (m AnnounceMsg) String() string {
-	return fmt.Sprintf(`{"type": "announce", "content": %s}`, m.body)
+	return fmt.Sprintf(`{"type": "announce", "msg": %s}`, m.body)
+}
+
+// PresenceMsg is a response for join/leave events
+type PresenceMsg struct {
+	Msg
+}
+
+func (m PresenceMsg) String() string {
+	return m.body
+}
+
+// NewPresenceMsg creates presence msg
+func NewPresenceMsg(body string) *PresenceMsg {
+	return &PresenceMsg{
+		Msg: Msg{
+			body:      body,
+			timestamp: time.Now(),
+		},
+	}
 }
 
 type CommandMsg struct {

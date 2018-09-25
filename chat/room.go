@@ -83,7 +83,7 @@ func (r *Room) HandleMsg(m message.Message) {
 		cmd := *m
 		err := r.commands.Run(r, cmd)
 		if err != nil {
-			m := message.NewSystemMsg(fmt.Sprintf("Err: %s", err), cmd.From())
+			m := message.NewSystemMsg(fmt.Sprintf(`"err: %s"`, err), cmd.From())
 			go r.HandleMsg(m)
 		}
 	case message.MessageTo:
@@ -154,7 +154,7 @@ func (r *Room) Join(u *message.User) (*Member, error) {
 	}
 	r.History(u)
 	s := fmt.Sprintf(`{"type": "presence", "who": "%s", "status": "joined", "connected": %d}`, u.Name(), r.Members.Len())
-	r.Send(message.NewAnnounceMsg(s))
+	r.Send(message.NewPresenceMsg(s))
 	return member, nil
 }
 
@@ -166,7 +166,7 @@ func (r *Room) Leave(u message.Identifier) error {
 	}
 	r.Ops.Remove(u.ID())
 	s := fmt.Sprintf(`{"type": "presence", "who": "%s", "status": "left"}`, u.Name())
-	r.Send(message.NewAnnounceMsg(s))
+	r.Send(message.NewPresenceMsg(s))
 	return nil
 }
 
@@ -181,7 +181,7 @@ func (r *Room) Rename(oldID string, u message.Identifier) error {
 	}
 
 	s := fmt.Sprintf(`{"type": "nick", "who": "%s", "alias": "%s"`, oldID, u.ID())
-	r.Send(message.NewAnnounceMsg(s))
+	r.Send(message.NewMsg(s))
 	return nil
 }
 
