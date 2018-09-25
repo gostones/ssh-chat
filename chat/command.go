@@ -116,7 +116,7 @@ func InitCommands(c *Commands) {
 		Handler: func(room *Room, msg message.CommandMsg) error {
 			me := strings.TrimLeft(msg.Body(), "/me")
 			if me == "" {
-				me = "is at a loss for words."
+				me = `""`
 			} else {
 				me = me[1:]
 			}
