@@ -123,7 +123,7 @@ func (h *Host) Connect(term *sshd.Terminal) {
 	//	member, err = h.Join(user)
 	//}
 
-	id.SetName(fmt.Sprintf("g%d", count))
+	id.SetName(fmt.Sprintf("p%d", count))
 	member, err := h.Join(user)
 
 	if err != nil {

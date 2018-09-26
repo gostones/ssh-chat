@@ -3,6 +3,7 @@ package chat
 // FIXME: Would be sweet if we could piggyback on a cli parser or something.
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -194,6 +195,70 @@ func InitCommands(c *Commands) {
 			return nil
 		},
 	})
+
+	//create tunnel link
+	c.Add(Command{
+		Prefix:     "/link",
+		PrefixHelp: "USER1:USER2 MESSAGE",
+		Help:       "Create tunnel from USER1 to USER2.",
+		Handler: func(room *Room, msg message.CommandMsg) error {
+			args := msg.Args()
+			switch len(args) {
+			case 0:
+				return errors.New("must specify user1:user2")
+			case 1:
+				return errors.New("must specify message")
+			}
+
+			users := strings.Split(args[0], ":")
+			if len(users) != 2 {
+				return errors.New("must specify user1:user2")
+			}
+
+			lm := make(map[string]string)
+
+			err := json.Unmarshal([]byte(strings.Join(args[1:], " ")), &lm)
+			if err != nil {
+				return errors.New("invalid json message")
+			}
+
+			//
+			sender := func(user string, content string) error {
+				member, ok := room.MemberByID(user)
+				if !ok {
+					return errors.New("user not found: " + user)
+				}
+				target := member.User
+
+				m := message.NewPrivateMsg(content, msg.From(), target)
+				room.Send(&m)
+
+				txt := fmt.Sprintf("[Sent PM to %s]", target.Name())
+				ms := message.NewSystemMsg(txt, msg.From())
+				room.Send(ms)
+				target.SetReplyTo(msg.From())
+
+				return nil
+			}
+
+			port := FreePort()
+			if port == -1 {
+				return errors.New("no free port")
+			}
+
+			//TODO lock/guarantee free port
+			if err := sender(users[1], fmt.Sprintf(`{"cmd":"rpc", "host_port":"%v", "remote_port":"%v"}`, lm["remote"], port)); err != nil {
+				return err
+			}
+
+			if err := sender(users[0], fmt.Sprintf(`{"cmd":"tun", "host_port":"%v", "remote_port":"%v"}`, lm["local"], port)); err != nil {
+				return err
+			}
+
+			return nil
+		},
+	})
+
 	//c.Alias("/names", "/list")
 
 	//c.Add(Command{

@@ -47,6 +47,15 @@ func NewMsg(body string) *Msg {
 	}
 }
 
+// ensure msg is in json format
+func ensureMsg(msg string) string {
+	msg = strings.TrimSpace(msg)
+	if msg == "" {
+		return "{}"
+	}
+	return msg
+}
+
 // Render message based on a theme.
 func (m Msg) Render(t *Theme) string {
 	// TODO: Render based on theme
@@ -156,7 +165,7 @@ func (m EmoteMsg) Render(t *Theme) string {
 }
 
 func (m EmoteMsg) String() string {
-	return fmt.Sprintf(`{"type": "me", "from": "%s", "msg": %s}`, m.from.Name(), m.body)
+	return fmt.Sprintf(`{"type": "me", "from": "%s", "msg": %s}`, m.from.Name(), ensureMsg(m.body))
 }
 
 // PrivateMsg is a message sent to another user, not shown to anyone else.
