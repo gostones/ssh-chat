@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/gostones/ssh-chat/chat/message"
 	"github.com/gostones/ssh-chat/set"
@@ -199,7 +202,18 @@ func (r *Room) Member(u *message.User) (*Member, bool) {
 	return m, true
 }
 
+// MemberByID returns the member by ID or a random member by prefix
 func (r *Room) MemberByID(id string) (*Member, bool) {
+	//prefix name/*
+	ids := strings.Split(id, "/")
+	if len(ids) == 1 || ids[1] == "" || ids[1] == "*" {
+		items := r.Members.ListPrefix(ids[0] + "/")
+		if len(items) > 0 {
+			rand.Seed(time.Now().UnixNano())
+			m := items[rand.Intn(len(items))]
+			return m.Value().(*Member), true
+		}
+	}
 	m, err := r.Members.Get(id)
 	if err != nil {
 		return nil, false

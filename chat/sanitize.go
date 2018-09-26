@@ -2,9 +2,10 @@ package chat
 
 import "regexp"
 
+//[[:word:]] [0-9A-Za-z_]
 var reStripName = regexp.MustCompile("[^\\w.-]")
 
-const maxLength = 16
+const maxLength = 64
 
 // SanitizeName returns a name with only allowed characters and a reasonable length
 func SanitizeName(s string) string {

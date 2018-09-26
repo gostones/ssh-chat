@@ -106,15 +106,15 @@ func (h *Host) Connect(term *sshd.Terminal) {
 	defer term.Close()
 
 	h.mu.Lock()
-	motd := h.motd
+	//motd := h.motd
 	count := h.count
 	h.count++
 	h.mu.Unlock()
 
 	// Send MOTD
-	if motd != "" {
-		user.Send(message.NewAnnounceMsg(motd))
-	}
+	// if motd != "" {
+	// 	user.Send(message.NewAnnounceMsg(motd))
+	// }
 
 	//member, err := h.Join(user)
 	//if err != nil {
@@ -123,7 +123,7 @@ func (h *Host) Connect(term *sshd.Terminal) {
 	//	member, err = h.Join(user)
 	//}
 
-	id.SetName(fmt.Sprintf("p%d", count))
+	id.SetName(fmt.Sprintf("%v/%d", id.Name(), count))
 	member, err := h.Join(user)
 
 	if err != nil {
