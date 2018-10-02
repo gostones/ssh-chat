@@ -190,7 +190,7 @@ func (u *User) HandleMsg(m Message) error {
 
 	if injectTimestamp {
 		// Inject a timestamp at most once every timestampTimeout between message intervals
-		ts := NewSystemMsg(fmt.Sprintf("Timestamp: %s", m.Timestamp().UTC().Format(timestampLayout)), u)
+		ts := NewSystemMsg(fmt.Sprintf(`"Timestamp": "%s"`, m.Timestamp().UTC().Format(timestampLayout)), u)
 		if err := u.writeMsg(ts); err != nil {
 			return err
 		}

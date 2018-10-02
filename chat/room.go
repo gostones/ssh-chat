@@ -167,83 +167,83 @@ func (r *Room) Join(u *message.User) (*Member, error) {
 		return nil, err
 	}
 	r.History(u)
-	s := fmt.Sprintf(`{"type": "presence", "who": "%s", "status": "joined", "connected": %d}`, u.Name(), r.Members.Len())
+	s := fmt.Sprintf(`{"type": "presence", "msg":{ "who": "%s", "status": "joined", "connected": %d}}`, u.Name(), r.Members.Len())
 	r.Send(message.NewPresenceMsg(s))
 	return member, nil
 }
 
 //
-func (r *Room) sendMessage(target *message.User, content string, from *message.User) error {
+// func (r *Room) sendMessage(target *message.User, content string, from *message.User) error {
 
-	m := message.NewPrivateMsg(content, from, target)
-	r.Send(&m)
+// 	m := message.NewPrivateMsg(content, from, target)
+// 	r.Send(&m)
 
-	txt := fmt.Sprintf("[Sent PM to %s]", target.Name())
-	ms := message.NewSystemMsg(txt, from)
-	r.Send(ms)
-	target.SetReplyTo(from)
+// 	txt := fmt.Sprintf("[Sent PM to %s]", target.Name())
+// 	ms := message.NewSystemMsg(txt, from)
+// 	r.Send(ms)
+// 	target.SetReplyTo(from)
 
-	return nil
-}
+// 	return nil
+// }
 
-//
-func (r *Room) CreateRPC(name string, hostPort string, port int, from *message.User) error {
-	member, ok := r.MemberByID(name)
-	if !ok {
-		return errors.New("Not found: " + name)
-	}
-	to := member.User
+// //
+// func (r *Room) CreateRPC(name string, hostPort string, port int, from *message.User) error {
+// 	member, ok := r.MemberByID(name)
+// 	if !ok {
+// 		return errors.New("Not found: " + name)
+// 	}
+// 	to := member.User
 
-	if err := r.sendMessage(to, fmt.Sprintf(`{"cmd":"rpc", "host_port":"%v", "remote_port":"%v"}`, hostPort, port), from); err != nil {
-		return err
-	}
+// 	if err := r.sendMessage(to, fmt.Sprintf(`{"cmd":"rpc", "host_port":"%v", "remote_port":"%v"}`, hostPort, port), from); err != nil {
+// 		return err
+// 	}
 
-	key := fmt.Sprintf("%v:%v", to.ID(), port)
-	link := RPCLink{
-		Name:     name,
-		Port:     port,
-		HostPort: hostPort,
-		To:       to,
-		From:     from,
-	}
-	r.Links.Add(set.Itemize(key, link))
-	return nil
-}
+// 	key := fmt.Sprintf("%v:%v", to.ID(), port)
+// 	link := RPCLink{
+// 		Name:     name,
+// 		Port:     port,
+// 		HostPort: hostPort,
+// 		To:       to,
+// 		From:     from,
+// 	}
+// 	r.Links.Add(set.Itemize(key, link))
+// 	return nil
+// }
 
-//
-func (r *Room) BackoffCreateRPC(name string, hostPort string, port int, from *message.User) {
-	sleep := BackoffDuration()
-	for {
-		rc := r.CreateRPC(name, hostPort, port, from)
-		if rc == nil {
-			return
-		}
-		sleep(rc)
-	}
-}
+// //
+// func (r *Room) BackoffCreateRPC(name string, hostPort string, port int, from *message.User) {
+// 	sleep := BackoffDuration()
+// 	for {
+// 		rc := r.CreateRPC(name, hostPort, port, from)
+// 		if rc == nil {
+// 			return
+// 		}
+// 		sleep(rc)
+// 	}
+// }
 
-//
-func (r *Room) CreateTun(name string, hostPort string, port int, from *message.User) error {
-	member, ok := r.MemberByID(name)
-	if !ok {
-		return errors.New("Not found: " + name)
-	}
-	to := member.User
+// //
+// func (r *Room) CreateTun(name string, hostPort string, port int, from *message.User) error {
+// 	member, ok := r.MemberByID(name)
+// 	if !ok {
+// 		return errors.New("Not found: " + name)
+// 	}
+// 	to := member.User
 
-	return r.sendMessage(to, fmt.Sprintf(`{"cmd":"tun", "host_port":"%v", "remote_port":"%v"}`, hostPort, port), from)
-}
+// 	return r.sendMessage(to, fmt.Sprintf(`{"cmd":"tun", "host_port":"%v", "remote_port":"%v"}`, hostPort, port), from)
+// }
 
-//
-func (r *Room) recreateLink(u message.Identifier) error {
-	items := r.Links.ListPrefix(u.ID() + ":")
-	for _, item := range items {
-		l := item.Value().(*RPCLink)
-		logger.Printf("Recreating rpc: %v\n", l)
-		go r.BackoffCreateRPC(l.Name, l.HostPort, l.Port, l.From)
-	}
+// //
+// func (r *Room) recreateLink(u message.Identifier) error {
+// 	items := r.Links.ListPrefix(u.ID() + ":")
+// 	for _, item := range items {
+// 		l := item.Value().(*RPCLink)
+// 		logger.Printf("Recreating rpc: %v\n", l)
+// 		go r.BackoffCreateRPC(l.Name, l.HostPort, l.Port, l.From)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // Leave the room as a user, will announce. Mostly used during setup.
 func (r *Room) Leave(u message.Identifier) error {
@@ -252,11 +252,11 @@ func (r *Room) Leave(u message.Identifier) error {
 		return err
 	}
 	r.Ops.Remove(u.ID())
-	s := fmt.Sprintf(`{"type": "presence", "who": "%s", "status": "left"}`, u.Name())
+	s := fmt.Sprintf(`{"type": "presence", "msg": {"who": "%s", "status": "left"}}`, u.Name())
 	r.Send(message.NewPresenceMsg(s))
 
 	//check and recreate rpc service
-	go r.recreateLink(u)
+	//go r.recreateLink(u)
 	//
 
 	return nil
@@ -272,7 +272,7 @@ func (r *Room) Rename(oldID string, u message.Identifier) error {
 		return err
 	}
 
-	s := fmt.Sprintf(`{"type": "nick", "who": "%s", "alias": "%s"`, oldID, u.ID())
+	s := fmt.Sprintf(`{"type": "nick", "msg": {"who": "%s", "alias": "%s"}}`, oldID, u.ID())
 	r.Send(message.NewMsg(s))
 	return nil
 }

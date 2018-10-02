@@ -3,7 +3,6 @@ package chat
 // FIXME: Would be sweet if we could piggyback on a cli parser or something.
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -107,7 +106,7 @@ func InitCommands(c *Commands) {
 		Prefix: "/help",
 		Handler: func(room *Room, msg message.CommandMsg) error {
 			op := room.IsOp(msg.From())
-			room.Send(message.NewSystemMsg(room.commands.Help(op), msg.From()))
+			room.Send(message.NewSystemMsg(fmt.Sprintf(`"text": "%v"`, room.commands.Help(op)), msg.From()))
 			return nil
 		},
 	})
@@ -190,55 +189,55 @@ func InitCommands(c *Commands) {
 				colNames[i] = colorize(uname.Value().(*Member).User)
 			}
 
-			body := fmt.Sprintf(`{"type": "who", "connected": %d, "member": "%s"}`, len(colNames), strings.Join(colNames, ", "))
+			body := fmt.Sprintf(`"type": "who", connected": %d, "member": "%s"`, len(colNames), strings.Join(colNames, ", "))
 			room.Send(message.NewSystemMsg(body, msg.From()))
 			return nil
 		},
 	})
 
-	//create tunnel link
-	c.Add(Command{
-		Prefix:     "/link",
-		PrefixHelp: "USER1:USER2 MESSAGE",
-		Help:       "Create tunnel from USER1 to USER2.",
-		Handler: func(room *Room, msg message.CommandMsg) error {
-			args := msg.Args()
-			switch len(args) {
-			case 0:
-				return errors.New("must specify user1:user2")
-			case 1:
-				return errors.New("must specify message")
-			}
+	// //create tunnel link
+	// c.Add(Command{
+	// 	Prefix:     "/link",
+	// 	PrefixHelp: "USER1:USER2 MESSAGE",
+	// 	Help:       "Create tunnel from USER1 to USER2.",
+	// 	Handler: func(room *Room, msg message.CommandMsg) error {
+	// 		args := msg.Args()
+	// 		switch len(args) {
+	// 		case 0:
+	// 			return errors.New("must specify user1:user2")
+	// 		case 1:
+	// 			return errors.New("must specify message")
+	// 		}
 
-			users := strings.Split(args[0], ":")
-			if len(users) != 2 {
-				return errors.New("must specify user1:user2")
-			}
+	// 		users := strings.Split(args[0], ":")
+	// 		if len(users) != 2 {
+	// 			return errors.New("must specify user1:user2")
+	// 		}
 
-			lm := make(map[string]string)
+	// 		lm := make(map[string]string)
 
-			err := json.Unmarshal([]byte(strings.Join(args[1:], " ")), &lm)
-			if err != nil {
-				return errors.New("invalid json message")
-			}
+	// 		err := json.Unmarshal([]byte(strings.Join(args[1:], " ")), &lm)
+	// 		if err != nil {
+	// 			return errors.New("invalid json message")
+	// 		}
 
-			port := FreePort()
-			if port == -1 {
-				return errors.New("no free port")
-			}
+	// 		port := FreePort()
+	// 		if port == -1 {
+	// 			return errors.New("no free port")
+	// 		}
 
-			//TODO lock/guarantee free port
-			if err := room.CreateRPC(users[1], lm["remote"], port, msg.From()); err != nil {
-				return err
-			}
+	// 		//TODO lock/guarantee free port
+	// 		if err := room.CreateRPC(users[1], lm["remote"], port, msg.From()); err != nil {
+	// 			return err
+	// 		}
 
-			if err := room.CreateTun(users[0], lm["local"], port, msg.From()); err != nil {
-				return err
-			}
+	// 		if err := room.CreateTun(users[0], lm["local"], port, msg.From()); err != nil {
+	// 			return err
+	// 		}
 
-			return nil
-		},
-	})
+	// 		return nil
+	// 	},
+	// })
 
 	//c.Alias("/names", "/list")
 

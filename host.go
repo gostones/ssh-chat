@@ -157,11 +157,11 @@ func (h *Host) Connect(term *sshd.Terminal) {
 
 		err = ratelimit.Count(1)
 		if err != nil {
-			user.Send(message.NewSystemMsg("Message rejected: Rate limiting is in effect.", user))
+			user.Send(message.NewSystemMsg(`"error": "Message rejected", "reason": "Rate limiting is in effect."`, user))
 			continue
 		}
 		if len(line) > maxInputLength {
-			user.Send(message.NewSystemMsg("Message rejected: Input too long.", user))
+			user.Send(message.NewSystemMsg(`"error": "Message rejected", "reason": "Input too long."`, user))
 			continue
 		}
 		if line == "" {
@@ -309,7 +309,7 @@ func (h *Host) InitCommands(c *chat.Commands) {
 			m := message.NewPrivateMsg(strings.Join(args[1:], " "), msg.From(), target)
 			room.Send(&m)
 
-			txt := fmt.Sprintf("[Sent PM to %s]", target.Name())
+			txt := fmt.Sprintf(`"status": "Sent", "to": "%v"`, target.Name())
 			ms := message.NewSystemMsg(txt, msg.From())
 			room.Send(ms)
 			target.SetReplyTo(msg.From())
@@ -494,39 +494,39 @@ func (h *Host) InitCommands(c *chat.Commands) {
 	//	},
 	//})
 
-	c.Add(chat.Command{
-		Op:         true,
-		Prefix:     "/op",
-		PrefixHelp: "USER [DURATION]",
-		Help:       "Set USER as admin.",
-		Handler: func(room *chat.Room, msg message.CommandMsg) error {
-			if !room.IsOp(msg.From()) {
-				return errors.New("must be op")
-			}
+	// c.Add(chat.Command{
+	// 	Op:         true,
+	// 	Prefix:     "/op",
+	// 	PrefixHelp: "USER [DURATION]",
+	// 	Help:       "Set USER as admin.",
+	// 	Handler: func(room *chat.Room, msg message.CommandMsg) error {
+	// 		if !room.IsOp(msg.From()) {
+	// 			return errors.New("must be op")
+	// 		}
 
-			args := msg.Args()
-			if len(args) == 0 {
-				return errors.New("must specify user")
-			}
+	// 		args := msg.Args()
+	// 		if len(args) == 0 {
+	// 			return errors.New("must specify user")
+	// 		}
 
-			var until time.Duration = 0
-			if len(args) > 1 {
-				until, _ = time.ParseDuration(args[1])
-			}
+	// 		var until time.Duration = 0
+	// 		if len(args) > 1 {
+	// 			until, _ = time.ParseDuration(args[1])
+	// 		}
 
-			member, ok := room.MemberByID(args[0])
-			if !ok {
-				return errors.New("user not found")
-			}
-			room.Ops.Add(set.Itemize(member.ID(), member))
+	// 		member, ok := room.MemberByID(args[0])
+	// 		if !ok {
+	// 			return errors.New("user not found")
+	// 		}
+	// 		room.Ops.Add(set.Itemize(member.ID(), member))
 
-			id := member.Identifier.(*Identity)
-			h.auth.Op(id.PublicKey(), until)
+	// 		id := member.Identifier.(*Identity)
+	// 		h.auth.Op(id.PublicKey(), until)
 
-			body := fmt.Sprintf("Made op by %s.", msg.From().Name())
-			room.Send(message.NewSystemMsg(body, member.User))
+	// 		body := fmt.Sprintf("Made op by %s.", msg.From().Name())
+	// 		room.Send(message.NewSystemMsg(body, member.User))
 
-			return nil
-		},
-	})
+	// 		return nil
+	// 	},
+	// })
 }
