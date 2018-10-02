@@ -1,11 +1,11 @@
 package sshchat
 
 import (
+	"fmt"
 	"net"
 	"time"
 
 	"github.com/gostones/ssh-chat/chat"
-	"github.com/gostones/ssh-chat/chat/message"
 	"github.com/gostones/ssh-chat/sshd"
 )
 
@@ -47,10 +47,17 @@ func (i Identity) Whois() string {
 	if i.PublicKey() != nil {
 		fingerprint = sshd.Fingerprint(i.PublicKey())
 	}
-	return "name: " + i.Name() + message.Newline +
-		" > fingerprint: " + fingerprint + message.Newline +
-		" > client: " + chat.SanitizeData(string(i.ClientVersion())) + message.Newline +
-		" > joined: " + humanSince(time.Since(i.created)) + " ago"
+	return fmt.Sprintf(`{"name": "%v", "fingerprint": "%v", "client:" "%v", "joined": "%v"}`,
+		i.Name(),
+		fingerprint,
+		chat.SanitizeData(string(i.ClientVersion())),
+		humanSince(time.Since(i.created)),
+	)
+
+	// return "name: " + i.Name() + message.Newline +
+	// 	" > fingerprint: " + fingerprint + message.Newline +
+	// 	" > client: " + chat.SanitizeData(string(i.ClientVersion())) + message.Newline +
+	// 	" > joined: " + humanSince(time.Since(i.created)) + " ago"
 }
 
 // WhoisAdmin returns a whois description for admin users.
@@ -60,9 +67,16 @@ func (i Identity) WhoisAdmin() string {
 	if i.PublicKey() != nil {
 		fingerprint = sshd.Fingerprint(i.PublicKey())
 	}
-	return "name: " + i.Name() + message.Newline +
-		" > ip: " + ip + message.Newline +
-		" > fingerprint: " + fingerprint + message.Newline +
-		" > client: " + chat.SanitizeData(string(i.ClientVersion())) + message.Newline +
-		" > joined: " + humanSince(time.Since(i.created)) + " ago"
+	return fmt.Sprintf(`{"name": "%v", "ip": "%v", "fingerprint": "%v", "client:" "%v", "joined": "%v"}`,
+		i.Name(),
+		ip,
+		fingerprint,
+		chat.SanitizeData(string(i.ClientVersion())),
+		humanSince(time.Since(i.created)),
+	)
+	// return "name: " + i.Name() + message.Newline +
+	// 	" > ip: " + ip + message.Newline +
+	// 	" > fingerprint: " + fingerprint + message.Newline +
+	// 	" > client: " + chat.SanitizeData(string(i.ClientVersion())) + message.Newline +
+	// 	" > joined: " + humanSince(time.Since(i.created)) + " ago"
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/gostones/ssh-chat/set"
 )
 
-const historyLen = 20
+const historyLen = 1
 const roomBuffer = 10
 
 // The error returned when a message is sent to a room that is already
@@ -29,6 +29,14 @@ type Member struct {
 	*message.User
 }
 
+type RPCLink struct {
+	Name     string // service name
+	HostPort string
+	Port     int //rps port
+	From     *message.User
+	To       *message.User
+}
+
 // Room definition, also a Set of User Items
 type Room struct {
 	topic     string
@@ -40,6 +48,8 @@ type Room struct {
 
 	Members *set.Set
 	Ops     *set.Set
+
+	Links *set.Set
 }
 
 // NewRoom creates a new room.
@@ -53,6 +63,7 @@ func NewRoom() *Room {
 
 		Members: set.New(),
 		Ops:     set.New(),
+		Links:   set.New(),
 	}
 }
 
@@ -99,7 +110,7 @@ func (r *Room) HandleMsg(m message.Message) {
 			skipUser = fromMsg.From()
 		}
 
-		r.history.Add(m)
+		//r.history.Add(m)
 		r.Members.Each(func(_ string, item set.Item) (err error) {
 			user := item.Value().(*Member).User
 
@@ -161,6 +172,79 @@ func (r *Room) Join(u *message.User) (*Member, error) {
 	return member, nil
 }
 
+//
+func (r *Room) sendMessage(target *message.User, content string, from *message.User) error {
+
+	m := message.NewPrivateMsg(content, from, target)
+	r.Send(&m)
+
+	txt := fmt.Sprintf("[Sent PM to %s]", target.Name())
+	ms := message.NewSystemMsg(txt, from)
+	r.Send(ms)
+	target.SetReplyTo(from)
+
+	return nil
+}
+
+//
+func (r *Room) CreateRPC(name string, hostPort string, port int, from *message.User) error {
+	member, ok := r.MemberByID(name)
+	if !ok {
+		return errors.New("Not found: " + name)
+	}
+	to := member.User
+
+	if err := r.sendMessage(to, fmt.Sprintf(`{"cmd":"rpc", "host_port":"%v", "remote_port":"%v"}`, hostPort, port), from); err != nil {
+		return err
+	}
+
+	key := fmt.Sprintf("%v:%v", to.ID(), port)
+	link := RPCLink{
+		Name:     name,
+		Port:     port,
+		HostPort: hostPort,
+		To:       to,
+		From:     from,
+	}
+	r.Links.Add(set.Itemize(key, link))
+	return nil
+}
+
+//
+func (r *Room) BackoffCreateRPC(name string, hostPort string, port int, from *message.User) {
+	sleep := BackoffDuration()
+	for {
+		rc := r.CreateRPC(name, hostPort, port, from)
+		if rc == nil {
+			return
+		}
+		sleep(rc)
+	}
+}
+
+//
+func (r *Room) CreateTun(name string, hostPort string, port int, from *message.User) error {
+	member, ok := r.MemberByID(name)
+	if !ok {
+		return errors.New("Not found: " + name)
+	}
+	to := member.User
+
+	return r.sendMessage(to, fmt.Sprintf(`{"cmd":"tun", "host_port":"%v", "remote_port":"%v"}`, hostPort, port), from)
+}
+
+//
+func (r *Room) recreateLink(u message.Identifier) error {
+	items := r.Links.ListPrefix(u.ID() + ":")
+	for _, item := range items {
+		l := item.Value().(*RPCLink)
+		logger.Printf("Recreating rpc: %v\n", l)
+		go r.BackoffCreateRPC(l.Name, l.HostPort, l.Port, l.From)
+	}
+
+	return nil
+}
+
 // Leave the room as a user, will announce. Mostly used during setup.
 func (r *Room) Leave(u message.Identifier) error {
 	err := r.Members.Remove(u.ID())
@@ -170,6 +254,11 @@ func (r *Room) Leave(u message.Identifier) error {
 	r.Ops.Remove(u.ID())
 	s := fmt.Sprintf(`{"type": "presence", "who": "%s", "status": "left"}`, u.Name())
 	r.Send(message.NewPresenceMsg(s))
+
+	//check and recreate rpc service
+	go r.recreateLink(u)
+	//
+
 	return nil
 }
 

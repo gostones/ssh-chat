@@ -222,36 +222,17 @@ func InitCommands(c *Commands) {
 				return errors.New("invalid json message")
 			}
 
-			//
-			sender := func(user string, content string) error {
-				member, ok := room.MemberByID(user)
-				if !ok {
-					return errors.New("user not found: " + user)
-				}
-				target := member.User
-
-				m := message.NewPrivateMsg(content, msg.From(), target)
-				room.Send(&m)
-
-				txt := fmt.Sprintf("[Sent PM to %s]", target.Name())
-				ms := message.NewSystemMsg(txt, msg.From())
-				room.Send(ms)
-				target.SetReplyTo(msg.From())
-
-				return nil
-			}
-
 			port := FreePort()
 			if port == -1 {
 				return errors.New("no free port")
 			}
 
 			//TODO lock/guarantee free port
-			if err := sender(users[1], fmt.Sprintf(`{"cmd":"rpc", "host_port":"%v", "remote_port":"%v"}`, lm["remote"], port)); err != nil {
+			if err := room.CreateRPC(users[1], lm["remote"], port, msg.From()); err != nil {
 				return err
 			}
 
-			if err := sender(users[0], fmt.Sprintf(`{"cmd":"tun", "host_port":"%v", "remote_port":"%v"}`, lm["local"], port)); err != nil {
+			if err := room.CreateTun(users[0], lm["local"], port, msg.From()); err != nil {
 				return err
 			}
 
