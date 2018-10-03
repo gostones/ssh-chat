@@ -3,11 +3,11 @@ package chat
 // FIXME: Would be sweet if we could piggyback on a cli parser or something.
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/gostones/ssh-chat/chat/message"
+	"strings"
 )
 
 // The error returned when an invalid command is issued.
@@ -191,6 +191,36 @@ func InitCommands(c *Commands) {
 
 			body := fmt.Sprintf(`"type": "who", connected": %d, "member": "%s"`, len(colNames), strings.Join(colNames, ", "))
 			room.Send(message.NewSystemMsg(body, msg.From()))
+			return nil
+		},
+	})
+
+	// service
+	c.Add(Command{
+		Prefix:     "/svc",
+		PrefixHelp: "MESSAGE",
+		Help:       "Register reverse proxy service.",
+		Handler: func(room *Room, msg message.CommandMsg) error {
+			args := msg.Args()
+			switch len(args) {
+			case 0:
+				return errors.New("missing message")
+			}
+
+			lm := make(map[string]string)
+
+			err := json.Unmarshal([]byte(strings.Join(args, " ")), &lm)
+			if err != nil {
+				return errors.New("invalid json message")
+			}
+
+			port := FreePort()
+			if port == -1 {
+				return errors.New("no free port")
+			}
+
+			room.Send(message.NewSystemMsg(fmt.Sprintf(`{"type":"port", "remote_port":"%v", "uuid":"%v"}`, port, lm["uuid"]), msg.From()))
+
 			return nil
 		},
 	})
