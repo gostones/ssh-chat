@@ -47,7 +47,7 @@ func (i Identity) Whois() string {
 	if i.PublicKey() != nil {
 		fingerprint = sshd.Fingerprint(i.PublicKey())
 	}
-	return fmt.Sprintf(`{"name": "%v", "fingerprint": "%v", "client:" "%v", "joined": "%v"}`,
+	return fmt.Sprintf(`{"name":"%v", "fingerprint":"%v", "client":"%v", "joined":"%v"}`,
 		i.Name(),
 		fingerprint,
 		chat.SanitizeData(string(i.ClientVersion())),
@@ -67,7 +67,7 @@ func (i Identity) WhoisAdmin() string {
 	if i.PublicKey() != nil {
 		fingerprint = sshd.Fingerprint(i.PublicKey())
 	}
-	return fmt.Sprintf(`{"name": "%v", "ip": "%v", "fingerprint": "%v", "client:" "%v", "joined": "%v"}`,
+	return fmt.Sprintf(`{"name":"%v", "ip":"%v", "fingerprint":"%v", "client":"%v", "joined":"%v"}`,
 		i.Name(),
 		ip,
 		fingerprint,
