@@ -370,7 +370,8 @@ func (h *Host) InitCommands(c *chat.Commands) {
 			case true:
 				whois = id.WhoisAdmin()
 			case false:
-				whois = id.Whois()
+				// whois = id.Whois()
+				whois = Whois(target)
 			}
 			room.Send(message.NewSystemMsg(whois, msg.From()))
 

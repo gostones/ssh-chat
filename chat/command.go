@@ -219,6 +219,17 @@ func InitCommands(c *Commands) {
 				return errors.New("no free port")
 			}
 
+			//upate user
+			u := msg.From()
+			u.UserType = "service"
+			u.HostPort = lm["host_port"]
+			u.RemotePort = port
+
+			err = room.UpdateService(u)
+			if err != nil {
+				return err
+			}
+
 			room.Send(message.NewSystemMsg(fmt.Sprintf(`{"type":"port", "remote_port":"%v", "uuid":"%v"}`, port, lm["uuid"]), msg.From()))
 
 			return nil

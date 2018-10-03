@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gostones/ssh-chat/chat"
+	"github.com/gostones/ssh-chat/chat/message"
 	"github.com/gostones/ssh-chat/sshd"
 )
 
@@ -79,4 +80,21 @@ func (i Identity) WhoisAdmin() string {
 	// 	" > fingerprint: " + fingerprint + message.Newline +
 	// 	" > client: " + chat.SanitizeData(string(i.ClientVersion())) + message.Newline +
 	// 	" > joined: " + humanSince(time.Since(i.created)) + " ago"
+}
+
+func Whois(u *message.User) string {
+	i := u.Identifier.(*Identity)
+	fingerprint := "(no public key)"
+	if i.PublicKey() != nil {
+		fingerprint = sshd.Fingerprint(i.PublicKey())
+	}
+	return fmt.Sprintf(`{"name":"%v", "fingerprint":"%v", "client":"%v", "joined":"%v", "user_type":"%v", "host_port":"%v", "remote_port":"%v"}`,
+		i.Name(),
+		fingerprint,
+		chat.SanitizeData(string(i.ClientVersion())),
+		humanSince(time.Since(i.created)),
+		u.UserType,
+		u.HostPort,
+		u.RemotePort,
+	)
 }

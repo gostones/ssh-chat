@@ -36,6 +36,11 @@ type User struct {
 	config  UserConfig
 	replyTo *User     // Set when user gets a /msg, for replying.
 	lastMsg time.Time // When the last message was rendered
+
+	//TODO
+	UserType   string
+	HostPort   string
+	RemotePort int
 }
 
 func NewUser(identity Identifier) *User {

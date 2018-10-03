@@ -29,13 +29,13 @@ type Member struct {
 	*message.User
 }
 
-type RPCLink struct {
-	Name     string // service name
-	HostPort string
-	Port     int //rps port
-	From     *message.User
-	To       *message.User
-}
+// type RPCLink struct {
+// 	Name     string // service name
+// 	HostPort string
+// 	Port     int //rps port
+// 	From     *message.User
+// 	To       *message.User
+// }
 
 // Room definition, also a Set of User Items
 type Room struct {
@@ -49,7 +49,7 @@ type Room struct {
 	Members *set.Set
 	Ops     *set.Set
 
-	Links *set.Set
+	//Links *set.Set
 }
 
 // NewRoom creates a new room.
@@ -63,7 +63,7 @@ func NewRoom() *Room {
 
 		Members: set.New(),
 		Ops:     set.New(),
-		Links:   set.New(),
+		//Links:   set.New(),
 	}
 }
 
@@ -260,6 +260,14 @@ func (r *Room) Leave(u message.Identifier) error {
 	//
 
 	return nil
+}
+
+// Update member
+func (r *Room) UpdateService(u *message.User) error {
+	member := &Member{u}
+	err := r.Members.Replace(u.ID(), set.Itemize(u.ID(), member))
+
+	return err
 }
 
 // Rename member with a new identity. This will not call rename on the member.
