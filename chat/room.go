@@ -167,7 +167,7 @@ func (r *Room) Join(u *message.User) (*Member, error) {
 		return nil, err
 	}
 	r.History(u)
-	s := fmt.Sprintf(`{"type": "presence", "msg":{ "who": "%s", "status": "joined", "connected": %d}}`, u.Name(), r.Members.Len())
+	s := fmt.Sprintf(`{"type": "presence", "msg":{ "who": "%s", "status": "joined", "connected": "%d"}}`, u.Name(), r.Members.Len())
 	r.Send(message.NewPresenceMsg(s))
 	return member, nil
 }
